@@ -70,13 +70,13 @@ public class T3ProtocolOperation {
         countLength = "04";
         datas.append(countLength);
 
+
         //define execute operation
         String pahse1Str = BytesOperation.bytesToHexString(payload);
         datas.append(capacityLength);
         datas.append(readObjectType);
         datas.append(pahse1Str);
 
-        //for compatiable fo hide
         //for compatiable fo hide
         AuthenticatedUser authenticatedUser = new AuthenticatedUser("weblogic", "admin123");
         String phase4 = BytesOperation.bytesToHexString(Serializables.serialize(authenticatedUser));
@@ -108,6 +108,7 @@ public class T3ProtocolOperation {
         datas.append(capacityLength);
         datas.append(readObjectType);
         datas.append(BytesOperation.bytesToHexString(Serializables.serialize(dst)));
+
 
         byte[] headers = BytesOperation.hexStringToBytes(datas.toString());
         int len = headers.length + 4;

