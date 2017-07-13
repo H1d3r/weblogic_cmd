@@ -19,3 +19,4 @@ weblogic t3 deserialization rce
   -src 需要上传的文件路径
   -dst 需要上传文件至目标的路径
   -noExecPath 在某些没有/bin/bash 或者cmd.exe情况下使用
+  -uploadShell 上传默认的jsp一句话木马
