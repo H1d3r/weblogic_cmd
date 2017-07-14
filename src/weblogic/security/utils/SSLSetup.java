@@ -5,34 +5,23 @@
 
 package weblogic.security.utils;
 
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.net.InetAddress;
-import java.net.SocketException;
-import java.security.AccessController;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.PrivateKey;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Properties;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.SSLSocket;
-
 import weblogic.kernel.Kernel;
 import weblogic.logging.Loggable;
 import weblogic.management.configuration.ServerMBean;
 import weblogic.management.provider.CommandLine;
 import weblogic.management.provider.ManagementService;
-import weblogic.security.SecurityLogger;
-import weblogic.security.SSL.HostnameVerifier;
 import weblogic.security.SSL.SSLClientInfo;
-import weblogic.security.SSL.TrustManager;
+import weblogic.security.SecurityLogger;
 import weblogic.security.acl.internal.AuthenticatedSubject;
 import weblogic.security.service.PrivilegedActions;
-import weblogic.security.service.SecurityServiceManager;
+
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.security.AccessController;
+import java.security.cert.X509Certificate;
+import java.util.Properties;
 
 public final class SSLSetup extends SSLSetupLogging {
     public static final int STANDARD_IO = 0;
@@ -41,8 +30,10 @@ public final class SSLSetup extends SSLSetupLogging {
     public static final int LICENSE_NONE = 0;
     public static final int LICENSE_DOMESTIC = 1;
     public static final int LICENSE_EXPORT = 2;
-    private static final AuthenticatedSubject kernelId = (AuthenticatedSubject)AccessController.doPrivileged(PrivilegedActions.getKernelIdentityAction());
     public static final String FAILURE_DETAILS = "weblogic.security.ssl.failureDetails";
+    private static final AuthenticatedSubject kernelId = (AuthenticatedSubject) AccessController.doPrivileged(PrivilegedActions.getKernelIdentityAction());
+    private static final String CERTICOM_DELEGATE = "com.bea.sslplus.CerticomSSLContext";
+    private static final String RSA_DELEGATE = "com.rsa.ssl.WeblogicContextWrapper";
     private static boolean ioModelAccessed = false;
     private static int ioModel = 0;
     private static int licenseLevel = -1;
@@ -51,15 +42,13 @@ public final class SSLSetup extends SSLSetupLogging {
     private static int protocolVersion = 3;
     private static boolean enforceConstraintsChecked = false;
     private static int enforceConstraints = 1;
-    private static final String CERTICOM_DELEGATE = "com.bea.sslplus.CerticomSSLContext";
-    private static final String RSA_DELEGATE = "com.rsa.ssl.WeblogicContextWrapper";
     private static Class sslDelegateClass = null;
 
     public SSLSetup() {
     }
 
     public static synchronized int getLicenseLevel() {
-        if(licenseLevel > -1) {
+        if (licenseLevel > -1) {
             return licenseLevel;
         } else {
             licenseLevel = 1;
@@ -78,7 +67,7 @@ public final class SSLSetup extends SSLSetupLogging {
     private static void setSSLDelegate(String var0) {
         try {
             sslDelegateClass = Class.forName(var0);
-            if(!SSLContextDelegate.class.isAssignableFrom(sslDelegateClass)) {
+            if (!SSLContextDelegate.class.isAssignableFrom(sslDelegateClass)) {
                 String var1 = "Cannot initialize SSL implementation. " + var0 + " does not implement " + SSLContextDelegate.class.getName();
                 throw new IllegalArgumentException(var1);
             }
@@ -89,7 +78,7 @@ public final class SSLSetup extends SSLSetupLogging {
     }
 
     static SSLContextDelegate getSSLDelegateInstance() {
-        if(licenseLevel == -1) {
+        if (licenseLevel == -1) {
             getLicenseLevel();
         }
 
@@ -97,7 +86,7 @@ public final class SSLSetup extends SSLSetupLogging {
 //        return new SSLContextDelegateImpl();
 
         try {
-            return (SSLContextDelegate)sslDelegateClass.newInstance();
+            return (SSLContextDelegate) sslDelegateClass.newInstance();
         } catch (IllegalAccessException var2) {
             var1 = SecurityLogger.getIllegalAccessOnContextWrapper(sslDelegateClass.getName());
             throw new RuntimeException(var1, var2);
@@ -112,10 +101,20 @@ public final class SSLSetup extends SSLSetupLogging {
         return ioModel;
     }
 
+    public static void setIOModel(int var0) {
+        if (var0 != 0 && var0 != 1) {
+            debug(2, "Attempt to change SSL IO model to invalid setting");
+        } else if (ioModelAccessed) {
+            debug(2, "Attempt to change SSL IO model after access");
+        } else {
+            ioModel = var0;
+        }
+    }
+
     public static boolean logSSLRejections() {
-        if(Kernel.isApplet()) {
+        if (Kernel.isApplet()) {
             return false;
-        } else if(!Kernel.isServer()) {
+        } else if (!Kernel.isServer()) {
             return true;
         } else {
             try {
@@ -127,26 +126,16 @@ public final class SSLSetup extends SSLSetupLogging {
         }
     }
 
-    public static void setIOModel(int var0) {
-        if(var0 != 0 && var0 != 1) {
-            debug(2, "Attempt to change SSL IO model to invalid setting");
-        } else if(ioModelAccessed) {
-            debug(2, "Attempt to change SSL IO model after access");
-        } else {
-            ioModel = var0;
-        }
-    }
-
     public static int getProtocolVersion() {
-        if(!protocolVersionChecked) {
+        if (!protocolVersionChecked) {
             try {
                 String var0 = CommandLine.getCommandLine().getSSLVersion();
-                if(var0 != null) {
-                    if(var0.equalsIgnoreCase("SSL3")) {
+                if (var0 != null) {
+                    if (var0.equalsIgnoreCase("SSL3")) {
                         protocolVersion = 1;
-                    } else if(var0.equalsIgnoreCase("TLS1")) {
+                    } else if (var0.equalsIgnoreCase("TLS1")) {
                         protocolVersion = 0;
-                    } else if(var0.equalsIgnoreCase("ALL")) {
+                    } else if (var0.equalsIgnoreCase("ALL")) {
                         protocolVersion = 3;
                     }
                 }
@@ -161,13 +150,13 @@ public final class SSLSetup extends SSLSetupLogging {
     }
 
     public static int getEnforceConstraints() {
-        if(!enforceConstraintsChecked) {
+        if (!enforceConstraintsChecked) {
             try {
                 String var0 = CommandLine.getCommandLine().getSSLEnforcementConstraint();
-                if(var0 != null) {
-                    if(!var0.equalsIgnoreCase("off") && !var0.equalsIgnoreCase("false")) {
-                        if(!var0.equalsIgnoreCase("strong") && !var0.equalsIgnoreCase("true")) {
-                            if(var0.equalsIgnoreCase("strict")) {
+                if (var0 != null) {
+                    if (!var0.equalsIgnoreCase("off") && !var0.equalsIgnoreCase("false")) {
+                        if (!var0.equalsIgnoreCase("strong") && !var0.equalsIgnoreCase("true")) {
+                            if (var0.equalsIgnoreCase("strict")) {
                                 enforceConstraints = 2;
                             }
                         } else {
@@ -188,14 +177,14 @@ public final class SSLSetup extends SSLSetupLogging {
     }
 
     public static SSLContextWrapper getSSLContext() throws SocketException {
-        return getSSLContext((SSLClientInfo)null);
+        return getSSLContext((SSLClientInfo) null);
     }
 
     public static SSLContextWrapper getSSLContext(SSLClientInfo var0) throws SocketException {
         SSLContextWrapper var1 = SSLContextWrapper.getInstance();
-        if(!Kernel.isApplet()) {
+        if (!Kernel.isApplet()) {
             X509Certificate[] var2 = getTrustedCAs(var1);
-            if(var2 != null) {
+            if (var2 != null) {
                 try {
                     var1.addTrustedCA(var2);
                 } catch (Exception var4) {
@@ -324,13 +313,13 @@ public final class SSLSetup extends SSLSetupLogging {
     }
 
     public static String getFailureDetails(SSLSession var0) {
-        return (String)var0.getValue("weblogic.security.ssl.failureDetails");
+        return (String) var0.getValue("weblogic.security.ssl.failureDetails");
     }
 
     public static void logPlaintextProtocolClientError(SSLSocket var0, String var1) {
         String var2 = getPeerName(var0);
         debug(2, "Connection to SSL port was made from " + var2 + " using plaintext protocol: " + var1);
-        if(logSSLRejections()) {
+        if (logSSLRejections()) {
             Loggable var3 = SecurityLogger.logPlaintextProtocolClientErrorLoggable(var1, var2);
             var3.log();
             setFailureDetails(var0.getSession(), var3.getMessage());
@@ -341,7 +330,7 @@ public final class SSLSetup extends SSLSetupLogging {
     public static void logProtocolVersionError(SSLSocket var0) {
         String var1 = getPeerName(var0);
         debug(2, "Connection to SSL port from " + var1 + " appears to be either unknown SSL version or maybe is plaintext");
-        if(logSSLRejections()) {
+        if (logSSLRejections()) {
             Loggable var2 = SecurityLogger.logProtocolVersionErrorLoggable(var1);
             var2.log();
             setFailureDetails(var0.getSession(), var2.getMessage());
@@ -352,7 +341,7 @@ public final class SSLSetup extends SSLSetupLogging {
     public static void logCertificateChainConstraintsStrictNonCriticalFailure(SSLSocket var0) {
         String var1 = getPeerName(var0);
         debug(2, "The certificate chain received from " + var1 + " contained a V3 CA certificate which had basic constraints which were not marked critical, " + "this is being rejected due to the strict enforcement of basic constraints.");
-        if(logSSLRejections()) {
+        if (logSSLRejections()) {
             Loggable var2 = SecurityLogger.logCertificateChainConstraintsStrictNonCriticalFailureLoggable(var1);
             var2.log();
             setFailureDetails(var0.getSession(), var2.getMessage());
@@ -363,7 +352,7 @@ public final class SSLSetup extends SSLSetupLogging {
     public static void logCertificateChainMissingConstraintsFailure(SSLSocket var0) {
         String var1 = getPeerName(var0);
         debug(2, "The certificate chain received from " + var1 + " contained a V3 CA certificate which was missing the basic constraints extension");
-        if(logSSLRejections()) {
+        if (logSSLRejections()) {
             Loggable var2 = SecurityLogger.logCertificateChainMissingConstraintsFailureLoggable(var1);
             var2.log();
             setFailureDetails(var0.getSession(), var2.getMessage());
@@ -374,7 +363,7 @@ public final class SSLSetup extends SSLSetupLogging {
     public static void logCertificateChainNotACaConstraintsFailure(SSLSocket var0) {
         String var1 = getPeerName(var0);
         debug(2, "The certificate chain received from " + var1 + " contained a V3 CA certificate which didn't indicate it really is a CA");
-        if(logSSLRejections()) {
+        if (logSSLRejections()) {
             Loggable var2 = SecurityLogger.logCertificateChainNotACaConstraintsFailureLoggable(var1);
             var2.log();
             setFailureDetails(var0.getSession(), var2.getMessage());
@@ -385,7 +374,7 @@ public final class SSLSetup extends SSLSetupLogging {
     public static void logCertificateChainPathLenExceededConstraintsFailure(SSLSocket var0) {
         String var1 = getPeerName(var0);
         debug(2, "The certificate chain received from " + var1 + " contained a V3 CA certificate which indicated a certificate chain path length in the basic constraints that was exceeded");
-        if(logSSLRejections()) {
+        if (logSSLRejections()) {
             Loggable var2 = SecurityLogger.logCertificateChainPathLenExceededConstraintsFailureLoggable(var1);
             var2.log();
             setFailureDetails(var0.getSession(), var2.getMessage());
@@ -396,7 +385,7 @@ public final class SSLSetup extends SSLSetupLogging {
     public static void logCertificateChainConstraintsConversionFailure(SSLSocket var0) {
         String var1 = getPeerName(var0);
         debug(2, "The certificate chain received from " + var1 + " contained a V3 CA certificate which couldn't be converted to be checked for basic constraints.");
-        if(logSSLRejections()) {
+        if (logSSLRejections()) {
             Loggable var2 = SecurityLogger.logCertificateChainConstraintsConversionFailureLoggable(var1);
             var2.log();
             setFailureDetails(var0.getSession(), var2.getMessage());
@@ -407,7 +396,7 @@ public final class SSLSetup extends SSLSetupLogging {
     public static void logCertificateChainUnrecognizedExtensionFailure(SSLSocket var0, String var1) {
         String var2 = getPeerName(var0);
         debug(2, "The certificate chain received from " + var2 + " contained a V3 certificate with unrecognized critical extension: " + var1);
-        if(logSSLRejections()) {
+        if (logSSLRejections()) {
             Loggable var3 = SecurityLogger.logCertificateChainUnrecognizedExtensionFailureLoggable(var2, var1);
             var3.log();
             setFailureDetails(var0.getSession(), var3.getMessage());
@@ -418,7 +407,7 @@ public final class SSLSetup extends SSLSetupLogging {
     public static void logCertificateChainAlgKeyUsageFailure(SSLSocket var0) {
         String var1 = getPeerName(var0);
         debug(2, "The certificate chain received from " + var1 + " contained a V3 certificate which key usage constraints indicate" + " its key cannot be used in quality required by the key agreement algorithm");
-        if(logSSLRejections()) {
+        if (logSSLRejections()) {
             Loggable var2 = SecurityLogger.logCertificateChainAlgKeyUsageFailureLoggable(var1);
             var2.log();
             setFailureDetails(var0.getSession(), var2.getMessage());
@@ -429,7 +418,7 @@ public final class SSLSetup extends SSLSetupLogging {
     public static void logCertificateChainCheckKeyUsageFailure(SSLSocket var0) {
         String var1 = getPeerName(var0);
         debug(2, "Cannot check key usage constraints of certificate recieved from " + var1 + " because of the failure to determine the key agreement algorithm");
-        if(logSSLRejections()) {
+        if (logSSLRejections()) {
             Loggable var2 = SecurityLogger.logCertificateChainCheckKeyUsageFailureLoggable(var1);
             var2.log();
             setFailureDetails(var0.getSession(), var2.getMessage());
@@ -440,7 +429,7 @@ public final class SSLSetup extends SSLSetupLogging {
     public static void logCertificateChainCertSignKeyUsageFailure(SSLSocket var0) {
         String var1 = getPeerName(var0);
         debug(2, "The certificate chain received from " + var1 + " contained a V3 CA certificate which key usage constraints indicate" + " its key cannot be used to sign certificates");
-        if(logSSLRejections()) {
+        if (logSSLRejections()) {
             Loggable var2 = SecurityLogger.logCertificateChainCertSignKeyUsageFailureLoggable(var1);
             var2.log();
             setFailureDetails(var0.getSession(), var2.getMessage());
@@ -451,7 +440,7 @@ public final class SSLSetup extends SSLSetupLogging {
     public static void logCertificatePolicyIdDoesntExistIntheList(SSLSocket var0, String var1) {
         String var2 = getPeerName(var0);
         debug(2, "Certificate Policies Extension Processing Failed,PolicyId: " + var1 + " doesn't Exist in the allowed list");
-        if(logSSLRejections()) {
+        if (logSSLRejections()) {
             Loggable var3 = SecurityLogger.logCertificatePolicyIdDoesntExistIntheListLoggable(var1);
             var3.log();
             setFailureDetails(var0.getSession(), var3.getMessage());
@@ -462,7 +451,7 @@ public final class SSLSetup extends SSLSetupLogging {
     public static void logPolicyQualifierIdNotCPS(SSLSocket var0, String var1) {
         String var2 = getPeerName(var0);
         debug(2, "PolicyQualifier Id Found in the Certificate" + var1 + " doesn't match with CPS Qualifier Id");
-        if(logSSLRejections()) {
+        if (logSSLRejections()) {
             Loggable var3 = SecurityLogger.logPolicyQualifierIdNotCPSLoggable(var1);
             var3.log();
             setFailureDetails(var0.getSession(), var3.getMessage());
@@ -472,16 +461,16 @@ public final class SSLSetup extends SSLSetupLogging {
 
     public static String getPeerName(SSLSocket var0) {
         String var1 = "unknown";
-        if(var0 != null) {
+        if (var0 != null) {
             InetAddress var2 = var0.getInetAddress();
-            if(var2 != null) {
+            if (var2 != null) {
                 try {
                     var1 = var2.getHostName() + " - " + var2.getHostAddress();
                 } catch (SecurityException var4) {
                     var1 = var2.getHostAddress();
                 }
 
-                if(var1 == null) {
+                if (var1 == null) {
                     var1 = var2.toString();
                 }
             }
@@ -491,10 +480,10 @@ public final class SSLSetup extends SSLSetupLogging {
     }
 
     public static void logAlertReceivedFromPeer(SSLSocket var0, int var1) {
-        if(logSSLRejections() && var1 != 0 && var1 != 90) {
+        if (logSSLRejections() && var1 != 0 && var1 != 90) {
             String var2 = getPeerName(var0);
             Loggable var3 = null;
-            switch(var1) {
+            switch (var1) {
                 case 10:
                     var3 = SecurityLogger.logUnexpectedMessageAlertReceivedFromPeerLoggable(var2);
                     break;
@@ -642,18 +631,18 @@ public final class SSLSetup extends SSLSetupLogging {
     public static Properties getSSLTrustProperties(ServerMBean var0) {
         Properties var1 = new Properties();
         String var2 = var0.getKeyStores();
-        if("DemoIdentityAndDemoTrust".equals(var2)) {
+        if ("DemoIdentityAndDemoTrust".equals(var2)) {
             add(var1, "TrustKeyStore", "DemoTrust");
             add(var1, "JavaStandardTrustKeyStorePassPhrase", var0.getJavaStandardTrustKeyStorePassPhrase());
-        } else if("CustomIdentityAndJavaStandardTrust".equals(var2)) {
+        } else if ("CustomIdentityAndJavaStandardTrust".equals(var2)) {
             add(var1, "TrustKeyStore", "JavaStandardTrust");
             add(var1, "JavaStandardTrustKeyStorePassPhrase", var0.getJavaStandardTrustKeyStorePassPhrase());
-        } else if("CustomIdentityAndCustomTrust".equals(var2)) {
+        } else if ("CustomIdentityAndCustomTrust".equals(var2)) {
             add(var1, "TrustKeyStore", "CustomTrust");
             add(var1, "CustomTrustKeyStoreFileName", var0.getCustomTrustKeyStoreFileName());
             add(var1, "CustomTrustKeyStoreType", var0.getCustomTrustKeyStoreType());
             add(var1, "CustomTrustKeyStorePassPhrase", var0.getCustomTrustKeyStorePassPhrase());
-        } else if(!"CustomIdentityAndCommandLineTrust".equals(var2)) {
+        } else if (!"CustomIdentityAndCommandLineTrust".equals(var2)) {
             throw new RuntimeException(SecurityLogger.getAssertionIllegalKeystoresValue(var2));
         }
 
@@ -669,7 +658,7 @@ public final class SSLSetup extends SSLSetupLogging {
     }
 
     private static void add(Properties var0, String var1, String var2) {
-        if(var2 != null) {
+        if (var2 != null) {
             var0.setProperty(var1, var2);
         }
 

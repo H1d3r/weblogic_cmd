@@ -86,12 +86,12 @@ public class T3ProtocolOperation {
 
         JVMID src = new JVMID();
 
-        Constructor constructor = JVMID.class.getDeclaredConstructor(java.net.InetAddress.class,boolean.class);
+        Constructor constructor = JVMID.class.getDeclaredConstructor(java.net.InetAddress.class, boolean.class);
         constructor.setAccessible(true);
-        src = (JVMID)constructor.newInstance(InetAddress.getByName("127.0.0.1"),false);
+        src = (JVMID) constructor.newInstance(InetAddress.getByName("127.0.0.1"), false);
         Field serverName = src.getClass().getDeclaredField("differentiator");
         serverName.setAccessible(true);
-        serverName.set(src,1);
+        serverName.set(src, 1);
 
         datas.append(capacityLength);
         datas.append(readObjectType);
@@ -99,12 +99,12 @@ public class T3ProtocolOperation {
 
         JVMID dst = new JVMID();
 
-        constructor = JVMID.class.getDeclaredConstructor(java.net.InetAddress.class,boolean.class);
+        constructor = JVMID.class.getDeclaredConstructor(java.net.InetAddress.class, boolean.class);
         constructor.setAccessible(true);
-        src = (JVMID)constructor.newInstance(InetAddress.getByName("127.0.0.1"),false);
+        src = (JVMID) constructor.newInstance(InetAddress.getByName("127.0.0.1"), false);
         serverName = src.getClass().getDeclaredField("differentiator");
         serverName.setAccessible(true);
-        serverName.set(dst,1);
+        serverName.set(dst, 1);
         datas.append(capacityLength);
         datas.append(readObjectType);
         datas.append(BytesOperation.bytesToHexString(Serializables.serialize(dst)));

