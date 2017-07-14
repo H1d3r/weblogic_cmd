@@ -1,4 +1,4 @@
-package com.supeream.payload;
+package com.supeream.test;
 
 import com.supeream.serial.BytesOperation;
 import sun.org.mozilla.javascript.internal.DefiningClassLoader;
@@ -12,7 +12,9 @@ public class PayloadTest {
 //        System.out.println(BytesOperation.bytesToHexString(iRemoteCode));
         DefiningClassLoader definingClassLoader = new DefiningClassLoader();
 //        Class<?> cls = definingClassLoader.defineClass("com.supeream.payload.IRemote",iRemoteCode);
-        byte[] remoteCodeImpl = BytesOperation.GetByteByFile("/Users/nike/IdeaProjects/weblogic_cmd/out/production/weblogic_cmd/com/supeream/payload/RemoteImpl.class");
+//        byte[] remoteCodeImpl = BytesOperation.GetByteByFile("/Users/nike/IdeaProjects/weblogic_cmd/out/production/weblogic_cmd/com/supeream/payload/RemoteImpl.class");
+        byte[] remoteCodeImpl = BytesOperation.GetByteByFile("/Users/nike/Documents/workspace/compile/bin/com/supeream/payload/RemoteImpl.class");
+
         System.out.println(BytesOperation.bytesToHexString(remoteCodeImpl));
 
         Class<?> cls_ = definingClassLoader.defineClass("com.supeream.payload.RemoteImpl", remoteCodeImpl);

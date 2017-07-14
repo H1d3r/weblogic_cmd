@@ -5,16 +5,6 @@
 
 package weblogic.socket;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.Socket;
-import java.net.SocketException;
-import java.net.UnknownHostException;
-import java.security.AccessController;
-import java.security.SecureRandom;
-
-import com.supeream.ssl.SocketFactory;
-import com.supeream.ssl.TrustManagerImpl;
 import weblogic.kernel.KernelStatus;
 import weblogic.protocol.ServerChannel;
 import weblogic.security.SSL.SSLClientInfo;
@@ -26,17 +16,21 @@ import weblogic.security.service.SecurityServiceManager;
 import weblogic.security.utils.SSLContextManager;
 import weblogic.security.utils.SSLSetup;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+import java.security.AccessController;
 
 public final class ChannelSSLSocketFactory extends SSLSocketFactory {
-    private static final AuthenticatedSubject kernelId = (AuthenticatedSubject)AccessController.doPrivileged(PrivilegedActions.getKernelIdentityAction());
+    private static final AuthenticatedSubject kernelId = (AuthenticatedSubject) AccessController.doPrivileged(PrivilegedActions.getKernelIdentityAction());
     private ServerChannel channel;
     private SSLClientInfo sslInfo;
 
     public ChannelSSLSocketFactory(ServerChannel var1) {
-        super((javax.net.ssl.SSLSocketFactory)null);
-        if(var1 == null) {
+        super((javax.net.ssl.SSLSocketFactory) null);
+        if (var1 == null) {
             throw new IllegalArgumentException("Channel must not be null");
         } else {
             this.channel = var1;
@@ -59,7 +53,7 @@ public final class ChannelSSLSocketFactory extends SSLSocketFactory {
     public Socket createSocket(InetAddress var1, int var2) throws IOException {
         javax.net.ssl.SSLSocketFactory var3 = this.getSocketFactory();
 //        javax.net.ssl.SSLSocketFactory var3 = this.g
-        return KernelStatus.isServer() && this.channel.isOutboundEnabled()?var3.createSocket(var1, var2, InetAddress.getByName(this.channel.getAddress()), 0):var3.createSocket(var1, var2);
+        return KernelStatus.isServer() && this.channel.isOutboundEnabled() ? var3.createSocket(var1, var2, InetAddress.getByName(this.channel.getAddress()), 0) : var3.createSocket(var1, var2);
     }
 
     public Socket createSocket(InetAddress var1, int var2, InetAddress var3, int var4) {
@@ -81,13 +75,13 @@ public final class ChannelSSLSocketFactory extends SSLSocketFactory {
 //        }
 //        return null;
 
-        int var4 = var3 > 0?var3:this.channel.getConnectTimeout() * 1000;
-        if(var4 == 0) {
+        int var4 = var3 > 0 ? var3 : this.channel.getConnectTimeout() * 1000;
+        if (var4 == 0) {
             return this.createSocket(var1, var2);
         } else {
             Socket var5;
-            if(KernelStatus.isServer() && this.channel.isOutboundEnabled()) {
-                if(this.channel.getProxyAddress() != null) {
+            if (KernelStatus.isServer() && this.channel.isOutboundEnabled()) {
+                if (this.channel.getProxyAddress() != null) {
                     var5 = SocketMuxer.getMuxer().newProxySocket(var1, var2, InetAddress.getByName(this.channel.getAddress()), 0, InetAddress.getByName(this.channel.getProxyAddress()), this.channel.getProxyPort(), var4);
                 } else {
                     var5 = SocketMuxer.getMuxer().newSocket(var1, var2, InetAddress.getByName(this.channel.getAddress()), 0, var4);
@@ -104,7 +98,7 @@ public final class ChannelSSLSocketFactory extends SSLSocketFactory {
         try {
             return this.getSocketFactory().getDefaultCipherSuites();
         } catch (IOException var2) {
-            throw (RuntimeException)(new IllegalStateException()).initCause(var2);
+            throw (RuntimeException) (new IllegalStateException()).initCause(var2);
         }
     }
 
@@ -112,7 +106,7 @@ public final class ChannelSSLSocketFactory extends SSLSocketFactory {
         try {
             return this.getSocketFactory().getSupportedCipherSuites();
         } catch (IOException var2) {
-            throw (RuntimeException)(new IllegalStateException()).initCause(var2);
+            throw (RuntimeException) (new IllegalStateException()).initCause(var2);
         }
     }
 
@@ -121,7 +115,7 @@ public final class ChannelSSLSocketFactory extends SSLSocketFactory {
     }
 
     private javax.net.ssl.SSLSocketFactory getSocketFactory() throws IOException {
-        if(this.sslInfo == null) {
+        if (this.sslInfo == null) {
             this.sslInfo = this.createSSLClientInfo();
             this.sslInfo.setNio(SocketMuxer.getMuxer().isAsyncMuxer());
         }
@@ -133,34 +127,34 @@ public final class ChannelSSLSocketFactory extends SSLSocketFactory {
         return this.sslInfo;
     }
 
-    private SSLClientInfo createSSLClientInfo() throws IOException {
-        SSLClientInfo var1 = Security.getThreadSSLClientInfo();
-        if((!KernelStatus.isServer() || var1 != null && !var1.isEmpty() || kernelId != SecurityServiceManager.getCurrentSubject(kernelId)) && (!this.channel.isOutboundEnabled() || !this.channel.isOutboundPrivateKeyEnabled())) {
-            return var1;
-        } else {
-            try {
-                return SSLContextManager.getChannelSSLClientInfo(this.channel, kernelId);
-            } catch (Exception var3) {
-                throw (IOException)(new IOException(var3.getMessage())).initCause(var3);
-            }
-        }
-    }
-
     public void setSSLClientInfo(SSLClientInfo var1) {
         try {
-            if(SocketMuxer.getMuxer().isAsyncMuxer()) {
-                if(var1 != null && !var1.isNioSet()) {
+            if (SocketMuxer.getMuxer().isAsyncMuxer()) {
+                if (var1 != null && !var1.isNioSet()) {
                     var1.setNio(true);
                 }
 
-                this.jsseFactory = var1 == null?SSLSetup.getSSLContext(var1).getSSLNioSocketFactory():var1.getSSLSocketFactory();
+                this.jsseFactory = var1 == null ? SSLSetup.getSSLContext(var1).getSSLNioSocketFactory() : var1.getSSLSocketFactory();
             } else {
-                this.jsseFactory = var1 == null?SSLSetup.getSSLContext(var1).getSSLSocketFactory():var1.getSSLSocketFactory();
+                this.jsseFactory = var1 == null ? SSLSetup.getSSLContext(var1).getSSLSocketFactory() : var1.getSSLSocketFactory();
             }
 
         } catch (SocketException var3) {
             SSLSetup.debug(3, var3, "Failed to create context");
             throw new RuntimeException("Failed to update factory: " + var3.getMessage());
+        }
+    }
+
+    private SSLClientInfo createSSLClientInfo() throws IOException {
+        SSLClientInfo var1 = Security.getThreadSSLClientInfo();
+        if ((!KernelStatus.isServer() || var1 != null && !var1.isEmpty() || kernelId != SecurityServiceManager.getCurrentSubject(kernelId)) && (!this.channel.isOutboundEnabled() || !this.channel.isOutboundPrivateKeyEnabled())) {
+            return var1;
+        } else {
+            try {
+                return SSLContextManager.getChannelSSLClientInfo(this.channel, kernelId);
+            } catch (Exception var3) {
+                throw (IOException) (new IOException(var3.getMessage())).initCause(var3);
+            }
         }
     }
 }

